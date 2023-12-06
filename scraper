@@ -3,6 +3,8 @@
 //const puppeteer = require('puppeteer');
 
 const COOKIE_DIR = '/var/www/temp-cookies';
+const WAIT_SECS = 5;
+const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0';
 
 const puppeteer = require('puppeteer-extra')
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
@@ -20,8 +22,7 @@ const options = {
 	args: ['--no-sandbox', '--disable-setuid-sandbox']
 };
 const headers = {
-  Authorization: 'Basic cG9ycG9pc2U6MTJpbmRpYTk='
-
+  'User-Agent': USER_AGENT
 }
 
 let url = 'https://www.example.org';
@@ -48,15 +49,29 @@ if (argv.url) {
   const cookies = JSON.parse(await fs.readFile(cookiesFilePath));
   await	page.waitForTimeout(20);
   await page.setCookie(...cookies);
-  await	page.waitForTimeout(5*1000);
+  await	page.waitForTimeout(WAIT_SECS*1000);
 
   let html = await page.content();
-  let dom = new JSDOM(html);	
-  let core = dom.window.document.querySelector('body');
+  if (typeof html === 'string') {
+    html = html.replace(/<link[^>]*?>/g, '').replace(/<style[^>]*?>[^§]*?<\/style>/g, '');
+  }
+  const dom = new JSDOM(html);	
+  const core = dom.window.document.querySelector('body');
+  const titleEl = dom.window.document.querySelector('title');
+  let title = '';
+  if (titleEl) {
+    title = titleEl.textContent;
+  }
   if (core) {
+    const removeNodes = core.querySelectorAll('script,style,iframe,svg,path');
+    if (removeNodes) {
+      for (const rm of removeNodes) {
+        rm.parentNode.removeChild(rm);
+      }
+    }
     html = core.innerHTML;	
   }
-  console.log(html);
+  console.log('<head><title>'+title+'</title></head><body>'+html+'</body>');
 
   await browser.close();
 })();
