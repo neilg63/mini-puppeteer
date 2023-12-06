@@ -1,21 +1,25 @@
 #!/usr/bin/env node
 
-//const puppeteer = require('puppeteer');
-
-const COOKIE_DIR = '/var/www/temp-cookies';
-const WAIT_SECS = 5;
-const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0';
-
+require('dotenv').config();
 const puppeteer = require('puppeteer-extra')
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 puppeteer.use(StealthPlugin())
+
 const argv = require("yargs").option('url', {
     alias: 'u',
     default: false
+  }).option('secs', {
+    alias: 's',
+    default: '5'
   }).argv;
 const fs = require("fs").promises;
 const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
+
+const COOKIE_DIR = process.env.COOKIE_DIR || '/var/www/temp-cookies';
+const WAIT_SECS = 5;
+const USER_AGENT = process.env.USER_AGENT || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0';
+
 
 const options = { 
 	headless: true,
@@ -27,10 +31,14 @@ const headers = {
 
 let url = 'https://www.example.org';
 
-
-
 if (argv.url) {
   url = argv.url;
+}
+
+let secondsWaitForFullLoad = WAIT_SECS;
+
+if (argv.secs) {
+  secondsWaitForFullLoad = parseFloat(argv.secs);
 }
 
 (async () => {
@@ -49,7 +57,7 @@ if (argv.url) {
   const cookies = JSON.parse(await fs.readFile(cookiesFilePath));
   await	page.waitForTimeout(20);
   await page.setCookie(...cookies);
-  await	page.waitForTimeout(WAIT_SECS*1000);
+  await	page.waitForTimeout(secondsWaitForFullLoad*1000);
 
   let html = await page.content();
   if (typeof html === 'string') {
