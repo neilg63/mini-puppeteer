@@ -22,7 +22,7 @@ const USER_AGENT = process.env.USER_AGENT || 'Mozilla/5.0 (Windows NT 10.0; Win6
 
 
 const options = { 
-	headless: true,
+	headless: 'new',
 	args: ['--no-sandbox', '--disable-setuid-sandbox']
 };
 const headers = {
@@ -79,7 +79,7 @@ if (argv.secs) {
     }
     html = core.innerHTML;	
   }
-  console.log('<head><title>'+title+'</title></head><body>'+html+'</body>');
+  console.log('<head><title>'+title+'</title></head>'+"\n"+'<body>'+html+'</body>');
 
   await browser.close();
 })();
