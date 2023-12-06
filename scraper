@@ -1,0 +1,62 @@
+#!/usr/bin/env node
+
+//const puppeteer = require('puppeteer');
+
+const COOKIE_DIR = '/var/www/temp-cookies';
+
+const puppeteer = require('puppeteer-extra')
+const StealthPlugin = require('puppeteer-extra-plugin-stealth')
+puppeteer.use(StealthPlugin())
+const argv = require("yargs").option('url', {
+    alias: 'u',
+    default: false
+  }).argv;
+const fs = require("fs").promises;
+const jsdom = require("jsdom");
+const { JSDOM } = jsdom;
+
+const options = { 
+	headless: true,
+	args: ['--no-sandbox', '--disable-setuid-sandbox']
+};
+const headers = {
+  Authorization: 'Basic cG9ycG9pc2U6MTJpbmRpYTk='
+
+}
+
+let url = 'https://www.example.org';
+
+
+
+if (argv.url) {
+  url = argv.url;
+}
+
+(async () => {
+  const browser = await puppeteer.launch(options);
+  const page = await browser.newPage();
+  await page.setExtraHTTPHeaders(headers);
+
+  const ts = Date.now();
+  const cookieFn = `cookies-${ts}.json`;
+  const cookiesFilePath = [COOKIE_DIR, cookieFn].join('/');
+
+  await page.goto(url);
+
+  const remoteCookies = await page.cookies();
+  await fs.writeFile(cookiesFilePath, JSON.stringify(remoteCookies));
+  const cookies = JSON.parse(await fs.readFile(cookiesFilePath));
+  await	page.waitForTimeout(20);
+  await page.setCookie(...cookies);
+  await	page.waitForTimeout(5*1000);
+
+  let html = await page.content();
+  let dom = new JSDOM(html);	
+  let core = dom.window.document.querySelector('body');
+  if (core) {
+    html = core.innerHTML;	
+  }
+  console.log(html);
+
+  await browser.close();
+})();

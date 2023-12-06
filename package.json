@@ -1,0 +1,30 @@
+{
+  "dependencies": {
+    "jsdom": "^23.0.1",
+    "puppeteer": "^21.6.0",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "yargs": "^17.7.2"
+  },
+  "name": "mini-puppeteer",
+  "description": "Basic scraper for pages that requie cookies and javascript to render the correct content",
+  "version": "1.0.0",
+  "main": "scraper",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/neilg63/mini-puppeteer.git"
+  },
+  "keywords": [
+    "scraping",
+    "censorship"
+  ],
+  "author": "Neil Gardner",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/neilg63/mini-puppeteer/issues"
+  },
+  "homepage": "https://github.com/neilg63/mini-puppeteer#readme"
+}
